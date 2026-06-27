@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+!/.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Evaluation results
+evaluation/results/*.json
+
+# Docker
+*.log
+
+# Coverage
+coverage/
+.coverage
+coverage.xml
+htmlcov/
+
+# Ruff
+.ruff_cache/
