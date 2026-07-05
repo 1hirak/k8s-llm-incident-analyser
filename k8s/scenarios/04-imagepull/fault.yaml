@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  namespace: demo
+spec:
+  template:
+    spec:
+      containers:
+      - name: demo-app
+        image: demo-app:nonexistent-tag
+        imagePullPolicy: Always

@@ -1,0 +1,57 @@
+import os
+import sys
+from unittest.mock import patch
+
+import pytest
+from fastapi.testclient import TestClient
+
+DEMO_APP_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "demo-app")
+
+
+@pytest.fixture
+def client():
+    if DEMO_APP_PATH not in sys.path:
+        sys.path.insert(0, DEMO_APP_PATH)
+    with patch.dict(os.environ, {"DATABASE_URL": "sqlite:///./test.db"}, clear=True):
+        from app.main import app
+        return TestClient(app)
+
+
+class TestHealthEndpoint:
+    def test_health_returns_ok(self, client):
+        response = client.get("/health")
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
+
+
+class TestReadyEndpoint:
+    def test_ready_returns_ok_when_db_available(self, client):
+        response = client.get("/ready")
+        assert response.status_code == 200
+        assert response.json() == {"ready": True}
+
+    def test_ready_raises_error_when_db_unavailable(self):
+        if DEMO_APP_PATH not in sys.path:
+            sys.path.insert(0, DEMO_APP_PATH)
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "postgresql://unavailable:5432/db"},
+            clear=True,
+        ):
+            from app.main import app
+            test_client = TestClient(app)
+            with pytest.raises(RuntimeError):
+                test_client.get("/ready")
+
+
+class TestFaultEndpoints:
+    def test_fault_crash_raises_error(self, client):
+        with pytest.raises(ZeroDivisionError):
+            client.get("/fault/crash")
+
+    def test_fault_oom_returns_allocated(self, client):
+        response = client.get("/fault/oom")
+        assert response.status_code == 200
+        data = response.json()
+        assert "allocated" in data
+        assert data["allocated"] == 600

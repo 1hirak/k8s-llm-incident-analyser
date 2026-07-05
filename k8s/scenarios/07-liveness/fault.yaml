@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  namespace: demo
+spec:
+  template:
+    spec:
+      containers:
+      - name: demo-app
+        livenessProbe:
+          httpGet:
+            path: /fault/slow
+            port: 8000
+          initialDelaySeconds: 1
+          periodSeconds: 5
