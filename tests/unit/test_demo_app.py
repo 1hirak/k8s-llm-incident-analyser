@@ -8,12 +8,18 @@ from fastapi.testclient import TestClient
 DEMO_APP_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "demo-app")
 
 
+def _import_demo_app():
+    sys.path.insert(0, DEMO_APP_PATH)
+    sys.modules.pop("app.main", None)
+    sys.modules.pop("app", None)
+    from app.main import app
+    return app
+
+
 @pytest.fixture
 def client():
-    if DEMO_APP_PATH not in sys.path:
-        sys.path.insert(0, DEMO_APP_PATH)
     with patch.dict(os.environ, {"DATABASE_URL": "sqlite:///./test.db"}, clear=True):
-        from app.main import app
+        app = _import_demo_app()
         return TestClient(app)
 
 
@@ -31,14 +37,12 @@ class TestReadyEndpoint:
         assert response.json() == {"ready": True}
 
     def test_ready_raises_error_when_db_unavailable(self):
-        if DEMO_APP_PATH not in sys.path:
-            sys.path.insert(0, DEMO_APP_PATH)
         with patch.dict(
             os.environ,
             {"DATABASE_URL": "postgresql://unavailable:5432/db"},
             clear=True,
         ):
-            from app.main import app
+            app = _import_demo_app()
             test_client = TestClient(app)
             with pytest.raises(RuntimeError):
                 test_client.get("/ready")

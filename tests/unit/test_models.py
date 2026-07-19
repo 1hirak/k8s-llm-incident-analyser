@@ -1,6 +1,7 @@
-from app.models.evidence import EvidenceItem
-from app.models.incident import IncidentReport, FailureCategory, Severity
 import pytest
+
+from app.models.evidence import EvidenceItem
+from app.models.incident import FailureCategory, IncidentReport, Severity
 
 
 class TestEvidenceItem:
